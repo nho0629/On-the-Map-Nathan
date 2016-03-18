@@ -69,13 +69,19 @@ class ParsingClient: UIViewController {
         return task
     }
     
-    func POSTParseMethod(httpBody: String, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func POSTParseMethod(httpBody: [String:AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let request = NSMutableURLRequest(URL: NSURL(string: "https://api.parse.com/1/classes/StudentLocation")!)
         request.HTTPMethod = "POST"
         request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
         request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.HTTPBody = httpBody.dataUsingEncoding(NSUTF8StringEncoding)
+        var jsonifyError: NSError? = nil
+        do {
+            request.HTTPBody = try NSJSONSerialization.dataWithJSONObject(httpBody, options: [])
+        } catch let error as NSError {
+            jsonifyError = error
+            request.HTTPBody = nil
+        }
         
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
@@ -156,7 +162,6 @@ class ParsingClient: UIViewController {
         return error
     }
     
-    /* Helper: Given raw JSON, return a usable Foundation object */
     class func parseJSONWithCompletionHandler(data: NSData, completionHandler: (result: AnyObject!, error: NSError?) -> Void) {
         
         var parsingError: NSError? = nil

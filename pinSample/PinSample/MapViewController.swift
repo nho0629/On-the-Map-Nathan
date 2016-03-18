@@ -33,7 +33,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         ParsingClient.sharedInstance().GETStudentLocationData(pinMapView, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
-                print("SUCCESS")
+                print("Success: Loaded pins")
                 print(self.appDelegate.mapStrings[0])
             } else {
                 self.errorAlert("Failed to Get Data For Map: \(errorString!)", reciever: self)

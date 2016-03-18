@@ -23,6 +23,14 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
         
         refresh(self)
         
+        ParsingClient.sharedInstance().GETStudentLocationData(nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
+            if success {
+                print("Success: Loaded table cells")
+            }else{
+                self.errorAlert(errorString!, reciever: self)
+            }
+        }
+        
         //1//
         let button: UIButton = UIButton(type: UIButtonType.Custom)
         button.setImage(UIImage(named: "pin"), forState: UIControlState.Normal)
@@ -62,9 +70,7 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
     func refresh(sender: AnyObject) {
         ParsingClient.sharedInstance().GETStudentLocationData(nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
-               // self.appDelegate.mapStrings.append(self.appDelegate.userLocation)
                 self.pinTableView?.reloadData()
-                
                 print("refreshing")
             }else{
               self.errorAlert(errorString!, reciever: self)

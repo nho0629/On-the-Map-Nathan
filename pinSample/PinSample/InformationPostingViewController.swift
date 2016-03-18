@@ -131,7 +131,19 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
     
     
     @IBAction func SubmitLocation(sender: UIButton) {
-        ParsingClient.sharedInstance().POSTUserLocationData("{\"uniqueKey\": \"\(appDelegate.userKey)\", \"firstName\": \"\(appDelegate.userFirstName)\", \"lastName\": \"\(appDelegate.userLastName)\",\"mapString\": \"\(userLocationString)\", \"mediaURL\": \"\(linkTextField.text!)\",\"latitude\": \(mapCoordinate.latitude), \"longitude\": \(mapCoordinate.latitude)}") {(success, errorString) in
+        
+        let userKey = String(appDelegate.userKey)
+        
+        let jsonBody: [String:AnyObject] = [
+            "uniqueKey" : userKey,
+            "firstName" : appDelegate.userFirstName,
+            "lastName" : appDelegate.userLastName,
+            "mapString" : userLocationString,
+            "mediaURL" : linkTextField.text!,
+            "latitude" :mapCoordinate!.latitude as Double ,
+            "longitude" :mapCoordinate!.longitude as Double ]
+        
+        ParsingClient.sharedInstance().POSTUserLocationData(jsonBody) {(success, errorString) in
             if success {
                 print(self.userLocationString)
                // self.appDelegate.mapStrings.append(self.appDelegate.userLocation)
@@ -140,7 +152,6 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
                     self.userAnnotation[0].subtitle = self.appDelegate.userLocation
                     print(self.userAnnotation[0].subtitle)
                     self.appDelegate.mapAnnotations.append(self.userAnnotation[0])
-                    self.appDelegate.userLocation = self.userLocationString
                 }
             }else{
                 self.errorAlert("Failed to place pin", reciever: self)

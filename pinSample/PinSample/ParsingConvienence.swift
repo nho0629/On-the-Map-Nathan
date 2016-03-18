@@ -16,7 +16,6 @@ extension ParsingClient {
             
             self.appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
             
-            /* 3. Send the desired value(s) to completion handler */
             if let _ = error {
                 completionHandler(success: false, errorString: JSONResult["error"] as? String)
             } else {
@@ -80,13 +79,11 @@ extension ParsingClient {
 
                 for _ in results {
                     
-                    //  Here we create the annotation and set its coordiate, title, and subtitle properties
                     let annotation = MKPointAnnotation()
                     annotation.coordinate = CLLocationCoordinate2D(latitude: locations.latitude[numberKey], longitude: locations.longitude[numberKey])
                     annotation.title = "\(locations.firstName[numberKey]) \(locations.lastName[numberKey])"
                     annotation.subtitle = locations.mediaURL[numberKey]
                     
-                    // Finally we place the annotation in an array of annotations.
                     self.appDelegate.mapAnnotations.append(annotation)
                     if view != nil {
                         dispatch_async(dispatch_get_main_queue()) {
@@ -111,7 +108,7 @@ extension ParsingClient {
         }
     }
     
-    func POSTUserLocationData(jsonBody: String, completionHandler: (success: Bool, errorString: String!) -> Void) {
+    func POSTUserLocationData(jsonBody: [String:AnyObject], completionHandler: (success: Bool, errorString: String!) -> Void) {
         POSTParseMethod(jsonBody) {JSONResult, error in
             if let _ = error {
                 completionHandler(success: false, errorString: JSONResult["error"] as? String)
