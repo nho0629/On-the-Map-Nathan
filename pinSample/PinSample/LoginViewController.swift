@@ -27,8 +27,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        usernameTextField.text = "peter.ho433@gmail.com"
-        passwordTextField.text = "j1eanne"
+        usernameTextField.text! = "peter.ho433@gmail.com"
+        passwordTextField.text! = "xanthosis"
         
         usernameTextField.delegate = self
         passwordTextField.delegate = self
@@ -72,16 +72,16 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     @IBAction func loginButtonTouch(sender: AnyObject) {
         if usernameTextField.text!.isEmpty {
-        errorAlert("Username is empty.", reciever: self)
+        Config.sharedInstance().errorAlert("Username is empty.", receiver: self)
         
         }else if passwordTextField.text!.isEmpty {
-            errorAlert("Password is empty.", reciever: self)
+             Config.sharedInstance().errorAlert("Password is empty.", receiver: self)
         } else {
             ParsingClient.sharedInstance().login(self, jsonBody: "{\"udacity\": {\"username\": \"\(usernameTextField.text!)\", \"password\": \"\(passwordTextField.text!)\"}}"){ (success, errorString) in
                 if success {
                     self.completeLogin()
                 } else {
-                self.errorAlert("Login Failed: \(errorString!)", reciever: self)
+                Config.sharedInstance().errorAlert("Login Failed: \(errorString!)", receiver: self)
                 }
             }
 
@@ -100,18 +100,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     
 
-            func errorAlert(errorMessage: String, reciever: AnyObject) {
-                dispatch_async(dispatch_get_main_queue()) {
-                            let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: UIAlertControllerStyle.Alert)
-                            alert.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default, handler: nil))
-                            reciever.presentViewController(alert, animated: true, completion: nil)
-                    
-                }
-            }
-
-    
-    
-    
     
     
     }

@@ -45,6 +45,16 @@ class Config {
         return keyboardSize.CGRectValue().height
     }
     
+    func errorAlert(errorMessage: String, receiver: AnyObject) {
+            dispatch_async(dispatch_get_main_queue()) {
+                let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: UIAlertControllerStyle.Alert)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default, handler: nil))
+                receiver.presentViewController(alert, animated: true, completion: nil)
+                
+            }
+        }
+        
+    
     class func sharedInstance() -> Config {
         
         struct Singleton {

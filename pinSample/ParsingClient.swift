@@ -16,11 +16,13 @@ class ParsingClient: UIViewController {
     
     let session = NSURLSession.sharedSession()
     
+    // MARK: - Initialization
     override func viewDidLoad() {
         appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
     }
     
-    func POSTSessionMethod(jsonBody: String, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    // MARK: - Login - related methods
+    func POSTSessionMethod(errorReceiver: AnyObject!, jsonBody: String, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         
         let urlString = "https://www.udacity.com/api/session"
         let url = NSURL(string: urlString)!
@@ -35,8 +37,8 @@ class ParsingClient: UIViewController {
         let task = session.dataTaskWithRequest(request) { data, response, downloadError in
             
             if let error = downloadError {
-                ParsingClient.errorForData(data, response: response, error: error)
-                completionHandler(result: nil, error: downloadError)
+                Config.sharedInstance().errorAlert("No internet Connection.", receiver: errorReceiver)
+                completionHandler(result: nil, error: error)
             } else {
                 let newData = data!.subdataWithRange(NSMakeRange(5, (data!.length) - 5)) /* subset response data! */
                 ParsingClient.parseJSONWithCompletionHandler(newData, completionHandler: completionHandler)
@@ -48,7 +50,7 @@ class ParsingClient: UIViewController {
         return task
     }
     
-    func GETSessionMethod(parameter: AnyObject, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func GETSessionMethod(receiver: AnyObject!, parameter: AnyObject, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let BASE_URL = "https://www.udacity.com/api/users/"
         let urlString = "\(BASE_URL)\(parameter)"
         let url = NSURL(string: urlString)
@@ -56,7 +58,7 @@ class ParsingClient: UIViewController {
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             
             if let error = downloadError {
-                ParsingClient.errorForData(data, response: response, error: error)
+                Config.sharedInstance().errorAlert("No internet Connection.", receiver: receiver)
                 completionHandler(result: nil, error: error)
             } else {
                 let newData = data!.subdataWithRange(NSMakeRange(5, data!.length - 5)) /* subset response data! */
@@ -69,7 +71,8 @@ class ParsingClient: UIViewController {
         return task
     }
     
-    func POSTParseMethod(httpBody: [String:AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    // MARK: - Map - related methods
+    func POSTParseMethod(receiver: AnyObject!, httpBody: [String:AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let request = NSMutableURLRequest(URL: NSURL(string: "https://api.parse.com/1/classes/StudentLocation")!)
         request.HTTPMethod = "POST"
         request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
@@ -81,11 +84,13 @@ class ParsingClient: UIViewController {
         } catch let error as NSError {
             jsonifyError = error
             request.HTTPBody = nil
+            completionHandler(result: nil, error: error)
+            print("Server Side Error")
         }
         
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
-                ParsingClient.errorForData(data, response: response, error: error)
+                ParsingClient.errorForData(data!, response: response, error: error)
                 completionHandler(result: nil, error: error)
             } else {
                 ParsingClient.parseJSONWithCompletionHandler(data!, completionHandler: completionHandler)
@@ -97,7 +102,7 @@ class ParsingClient: UIViewController {
         return task
     }
     
-    func GETParseMethod(parameters: [String : AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func GETParseMethod(receiver: AnyObject!, parameters: [String : AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let BASE_URL = "https://api.parse.com/1/classes/StudentLocation"
         let urlString = BASE_URL + appDelegate.escapedParameters(parameters)
         let url = NSURL(string: urlString)
@@ -107,7 +112,7 @@ class ParsingClient: UIViewController {
         
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
-                ParsingClient.errorForData(data, response: response, error: error)
+                ParsingClient.errorForData(data!, response: response, error: error)
                 completionHandler(result: nil, error: error)
             } else {
                 ParsingClient.parseJSONWithCompletionHandler(data!, completionHandler: completionHandler)
@@ -121,6 +126,7 @@ class ParsingClient: UIViewController {
         return task
     }
     
+    // MARK: - Logging out
     func DELETEMethod(sender:AnyObject!, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let request = NSMutableURLRequest(URL: NSURL(string: "https://www.udacity.com/api/session")!)
         request.HTTPMethod = "DELETE"
@@ -134,7 +140,7 @@ class ParsingClient: UIViewController {
         }
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
-                ParsingClient.errorForData(data, response: response, error: error)
+                ParsingClient.errorForData(data!, response: response, error: error)
                 completionHandler(result: nil, error: error)
             } else {
                 let newData = data!.subdataWithRange(NSMakeRange(5, data!.length - 5)) /* subset response data! */
@@ -147,9 +153,10 @@ class ParsingClient: UIViewController {
         return task
     }
     
-    class func errorForData(data: NSData?, response: NSURLResponse?, error: NSError) -> NSError {
+    // MARK: - Handling Errors
+    class func errorForData(data: NSData, response: NSURLResponse?, error: NSError) -> NSError {
         
-        if let parsedResult = (try? NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments)) as? [String : AnyObject] {
+        if let parsedResult = (try? NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments)) as? [String : AnyObject] {
             
             if let errorMessage = parsedResult["status_message"] as? String {
                 
@@ -162,6 +169,7 @@ class ParsingClient: UIViewController {
         return error
     }
     
+    // MARK: - JSON Parsing
     class func parseJSONWithCompletionHandler(data: NSData, completionHandler: (result: AnyObject!, error: NSError?) -> Void) {
         
         var parsingError: NSError? = nil

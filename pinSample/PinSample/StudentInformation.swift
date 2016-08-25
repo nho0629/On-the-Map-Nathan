@@ -17,15 +17,16 @@ struct StudentInformation {
     var mediaURL = [String]()
     var uniqueKey = [String]()
     var mapString = [String]()
-        
-    init( personDict: NSDictionary) {
+    
+    var appDelegate: AppDelegate!
+
+    init(personDict: NSDictionary) {
         
         var results = [AnyObject]()
         results = personDict["results"] as! [(AnyObject)]
         var numberKey = 0
         
-        let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as! AppDelegate
+        appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         
         for _ in results {
             let first = results[numberKey]["firstName"] as! String
@@ -42,11 +43,12 @@ struct StudentInformation {
             longitude.append(long)
             let mapLocation = results[numberKey]["mapString"] as! String
             mapString.append(mapLocation)
-            appDelegate.mapStrings.append(mapLocation)
+            StudentData.sharedInstance().mapStrings.append(mapLocation)
             numberKey++
-
         }
     }
+    
+
     
 }
 

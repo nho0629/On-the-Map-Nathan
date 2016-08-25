@@ -16,6 +16,7 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var colorView: UIView!
     @IBOutlet weak var locationTextField: UITextField!
     @IBOutlet weak var bottomView: UIView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var submitButton: UIButton!
@@ -29,7 +30,8 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
     var userLocationString: String!
     
     var appDelegate: AppDelegate!
-        
+    
+    // MARK: - Initialization
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -44,8 +46,7 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
         submitButton.hidden = true
         submitButton.enabled = false
         mapView.zoomEnabled = false
-        
-        appDelegate.userLocation = userLocationString
+        activityIndicator.hidden = true
         
     }
     
@@ -61,14 +62,25 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
         self.dismissViewControllerAnimated(true, completion: nil)
     }
     
+    // MARK: - Finding locations on the map
     @IBAction func findOnTheMap(sender: UIButton) {
+        
+        activityIndicator.hidden = false
+
+        self.view.alpha = 0.4
+        self.activityIndicator.startAnimating()
+        
         userLocationString = locationTextField.text!
+        
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(userLocationString, completionHandler: {(placemarks, error)->Void in
             if let placemark = placemarks?[0] as CLPlacemark? {
                 self.mapView.addAnnotation(MKPlacemark(placemark: placemark))
                 
+                self.view.alpha = 1.0
+                self.activityIndicator.stopAnimating()
                 
+                self.activityIndicator.hidden = true
                 self.locationTextField.hidden = true
                 self.locationTextField.enabled = false
                 self.linkTextField.hidden = false
@@ -88,7 +100,7 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
                 
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = self.mapCoordinate
-                annotation.title = "\(self.appDelegate.userFirstName) \(self.appDelegate.userLastName)"
+                annotation.title = "\(StudentData.sharedInstance().userFirstName) \(StudentData.sharedInstance().userLastName)"
                 self.userAnnotation.append(annotation)
                 let coordinate = placemark.location?.coordinate
                 self.mapView.setCenterCoordinate(coordinate!, animated: false)
@@ -97,12 +109,17 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
                 
             }else{
                 
-                self.errorAlert("Unknown Location", reciever: self)
+                Config.sharedInstance().errorAlert("Unknown Location", receiver: self)
+                
+                self.view.alpha = 1.0
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.hidden = true
                 
             }
         })
     }
     
+    // MARK: - Textfield formatting
     func textFieldShouldReturn(textField: UITextField) -> Bool {
         linkTextField.resignFirstResponder()
         locationTextField.resignFirstResponder()
@@ -110,62 +127,48 @@ class InformationPostingViewController: UIViewController, UITextFieldDelegate {
         return true
     }
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "dismissedSegue" {
-        
-            locationTextField.hidden = false
-            locationTextField.enabled = true
-            locationTextField.text! = ""
-            linkTextField.hidden = true
-            linkTextField.enabled = false
-            cancelButton.setTitleColor(UIColor.blueColor(), forState: [])
-            mapView.hidden = true
-            topLabel.hidden = false
-            topLabel.textColor = UIColor.blackColor()
-            submitButton.hidden = true
-            submitButton.enabled = false
-            colorView.backgroundColor = bottomView.backgroundColor
-            mapView.zoomEnabled = false
-        }
-    }
-    
-    
+    // MARK: - Submitting your location info to map
     @IBAction func SubmitLocation(sender: UIButton) {
         
-        let userKey = String(appDelegate.userKey)
+        locationTextField.hidden = false
+        locationTextField.enabled = true
+        locationTextField.text! = ""
+        linkTextField.hidden = true
+        linkTextField.enabled = false
+        cancelButton.setTitleColor(UIColor.blueColor(), forState: [])
+        mapView.hidden = true
+        topLabel.hidden = false
+        topLabel.textColor = UIColor.blackColor()
+        submitButton.hidden = true
+        submitButton.enabled = false
+        colorView.backgroundColor = bottomView.backgroundColor
+        mapView.zoomEnabled = false
         
         let jsonBody: [String:AnyObject] = [
-            "uniqueKey" : userKey,
-            "firstName" : appDelegate.userFirstName,
-            "lastName" : appDelegate.userLastName,
+            "uniqueKey" : String(StudentData.sharedInstance().userKey),
+            "firstName" : StudentData.sharedInstance().userFirstName,
+            "lastName" : StudentData.sharedInstance().userLastName,
             "mapString" : userLocationString,
             "mediaURL" : linkTextField.text!,
-            "latitude" :mapCoordinate!.latitude as Double ,
-            "longitude" :mapCoordinate!.longitude as Double ]
+            "latitude" : mapCoordinate!.latitude as Double ,
+            "longitude" : mapCoordinate!.longitude as Double ]
         
-        ParsingClient.sharedInstance().POSTUserLocationData(jsonBody) {(success, errorString) in
+        ParsingClient.sharedInstance().POSTUserLocationData(self, jsonBody: jsonBody) {(success, errorString) in
             if success {
-                print(self.userLocationString)
-               // self.appDelegate.mapStrings.append(self.appDelegate.userLocation)
+                
+                StudentData.sharedInstance().userLocation = self.userLocationString
+                
                 dispatch_async(dispatch_get_main_queue()) {
-                self.performSegueWithIdentifier("dismissedSegue", sender: self.submitButton)
-                    self.userAnnotation[0].subtitle = self.appDelegate.userLocation
-                    print(self.userAnnotation[0].subtitle)
-                    self.appDelegate.mapAnnotations.append(self.userAnnotation[0])
+                    self.dismissViewControllerAnimated(true, completion: nil)
+
+                    self.userAnnotation[0].subtitle = StudentData.sharedInstance().userLocation
                 }
             }else{
-                self.errorAlert("Failed to place pin", reciever: self)
+                Config.sharedInstance().errorAlert("Failed to place pin", receiver: self)
+
             }
         }
         }
-    func errorAlert(errorMessage: String, reciever: AnyObject) {
-        dispatch_async(dispatch_get_main_queue()) {
-            let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default, handler: nil))
-            reciever.presentViewController(alert, animated: true, completion: nil)
-            
-        }
-    }
 
     
 }

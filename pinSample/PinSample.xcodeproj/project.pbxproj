@@ -12,6 +12,7 @@
 		360209D31C24DD9200A77999 /* ParsingConvienence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 360209D21C24DD9100A77999 /* ParsingConvienence.swift */; };
 		368876D61BF817CF00C44127 /* CustomPinCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368876D51BF817CF00C44127 /* CustomPinCell.swift */; };
 		36BD1F331BC9DD62004B084D /* PinListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36BD1F321BC9DD62004B084D /* PinListTableViewController.swift */; };
+		36D2A70F1D1C3B610076FFF7 /* StudentData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D2A70E1D1C3B610076FFF7 /* StudentData.swift */; };
 		36E2083E1BB8B79C003FB5B2 /* InformationPostingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E2083D1BB8B79C003FB5B2 /* InformationPostingViewController.swift */; };
 		36E2B7BA1B865F9100BE33BA /* StudentInformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E2B7B91B865F9100BE33BA /* StudentInformation.swift */; };
 		36E2B7BC1B8A2B3100BE33BA /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E2B7BB1B8A2B3100BE33BA /* LoginViewController.swift */; };
@@ -39,6 +40,7 @@
 		360209D21C24DD9100A77999 /* ParsingConvienence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ParsingConvienence.swift; path = PinSample/ParsingConvienence.swift; sourceTree = "<group>"; };
 		368876D51BF817CF00C44127 /* CustomPinCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPinCell.swift; sourceTree = "<group>"; };
 		36BD1F321BC9DD62004B084D /* PinListTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PinListTableViewController.swift; sourceTree = "<group>"; };
+		36D2A70E1D1C3B610076FFF7 /* StudentData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StudentData.swift; path = ../StudentData.swift; sourceTree = "<group>"; };
 		36E2083D1BB8B79C003FB5B2 /* InformationPostingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InformationPostingViewController.swift; sourceTree = "<group>"; };
 		36E2B7B91B865F9100BE33BA /* StudentInformation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StudentInformation.swift; sourceTree = "<group>"; };
 		36E2B7BB1B8A2B3100BE33BA /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 				4DFABCE91AC0CBAC00D21C43 /* MapViewController.swift */,
 				36E2083D1BB8B79C003FB5B2 /* InformationPostingViewController.swift */,
 				36E2B7B91B865F9100BE33BA /* StudentInformation.swift */,
+				36D2A70E1D1C3B610076FFF7 /* StudentData.swift */,
 				4DFABCEB1AC0CBAC00D21C43 /* Main.storyboard */,
 				36E2B7BB1B8A2B3100BE33BA /* LoginViewController.swift */,
 				36BD1F321BC9DD62004B084D /* PinListTableViewController.swift */,
@@ -244,6 +247,7 @@
 				36E2083E1BB8B79C003FB5B2 /* InformationPostingViewController.swift in Sources */,
 				4DFABCEA1AC0CBAC00D21C43 /* MapViewController.swift in Sources */,
 				4DFABCE81AC0CBAC00D21C43 /* AppDelegate.swift in Sources */,
+				36D2A70F1D1C3B610076FFF7 /* StudentData.swift in Sources */,
 				36BD1F331BC9DD62004B084D /* PinListTableViewController.swift in Sources */,
 				360209CD1C1BB52800A77999 /* Config.swift in Sources */,
 				368876D61BF817CF00C44127 /* CustomPinCell.swift in Sources */,

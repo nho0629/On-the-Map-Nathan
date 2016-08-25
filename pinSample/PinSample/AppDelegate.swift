@@ -14,17 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     
-    var sessionID:AnyObject? = nil
-    
-    var locationString = [String]()
-    var userFirstName: String!
-    var userLastName: String!
-    var userKey: Int!
-    var userLocation: String!
-    
-    var mapAnnotations = [MKPointAnnotation]()
-    var mapStrings = [String]()
-    
     }
 extension AppDelegate {
     

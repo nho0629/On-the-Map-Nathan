@@ -24,6 +24,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     var userLocation: String!
     
+    // MARK: - Initialization
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -31,17 +32,15 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         
-        ParsingClient.sharedInstance().GETStudentLocationData(pinMapView, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
+        ParsingClient.sharedInstance().GETStudentLocationData(self, view: pinMapView, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
                 print("Success: Loaded pins")
-                print(self.appDelegate.mapStrings[0])
             } else {
-                self.errorAlert("Failed to Get Data For Map: \(errorString!)", reciever: self)
+                Config.sharedInstance().errorAlert("Failed to Get Data For Map: \(errorString!)", receiver: self)
             }
         }
 
         
-        //1//
 
         let button: UIButton = UIButton(type: UIButtonType.Custom)
         button.setImage(UIImage(named: "pin"), forState: UIControlState.Normal)
@@ -49,9 +48,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         button.frame = CGRectMake(0, 0, 33, 33)
         let pinBarButtonItem = UIBarButtonItem(customView: button)
         
-        //2//
         let reloadBarButtonItem:UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Refresh, target: self, action: "refresh:")
-        //3//
+
         let logoutBarButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Logout", style: UIBarButtonItemStyle.Plain, target: self, action: "logout:")
         
         navigationItem.setRightBarButtonItems([pinBarButtonItem, reloadBarButtonItem], animated: true)
@@ -64,7 +62,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     // MARK: - MKMapViewDelegate
     
-    //Makes Pins//
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
         let reuseId = "pin"
@@ -81,7 +78,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return pinView
     }
     
-    //Opens Pins//
     func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
         if control == annotationView.rightCalloutAccessoryView {
@@ -90,14 +86,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    //Indicates that Map is Loading//
-    func mapViewWillStartLoadingMap(mapView: MKMapView) {
+    func mapViewWillStartRenderingMap(mapView: MKMapView) {
         mapView.alpha = 0.4
         activityIndicator.startAnimating()
     }
     
-    //Asks If the Map has Added the AnnotationViews//
-    func mapViewDidFinishLoadingMap(mapView: MKMapView) {
+    
+    func mapViewDidFinishRenderingMap(mapView: MKMapView, fullyRendered: Bool) {
         mapView.alpha = 1.0
         activityIndicator.stopAnimating()
     }
@@ -106,9 +101,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func logout(sender: UIBarButtonItem) {
         ParsingClient.sharedInstance().logout(sender) {success, errorString in
             if success {
+                dispatch_async(dispatch_get_main_queue()) {
                 self.dismissViewControllerAnimated(true, completion: nil)
+                }
             } else {
-                self.errorAlert("Failed to Logout: \(errorString)", reciever: self)
+                Config.sharedInstance().errorAlert("Failed to Logout: \(errorString)", receiver: self)
                 print("Failed to Logout")
             }
         }
@@ -116,26 +113,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     func refresh(sender: AnyObject) {
         if pinMapView.annotations.isEmpty != true {
-            pinMapView?.removeAnnotations((appDelegate?.mapAnnotations)!)
-            appDelegate.mapAnnotations.removeAll()
+            pinMapView?.removeAnnotations((StudentData.sharedInstance().mapAnnotations))
+           StudentData.sharedInstance().mapAnnotations.removeAll()
         }
-        ParsingClient.sharedInstance().GETStudentLocationData(pinMapView, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
+        ParsingClient.sharedInstance().GETStudentLocationData(self, view: pinMapView, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
                 print("SUCCESS")
-                print(self.appDelegate.mapStrings[0])
             } else {
-                self.errorAlert("Failed to Get Data For Map: \(errorString!)", reciever: self)
+                Config.sharedInstance().errorAlert("Failed to Get Data For Map: \(errorString!)", receiver: self)
             }
         }
         print("Refreshing")
-    }
-    
-    func errorAlert(errorMessage: String, reciever: AnyObject) {
-        dispatch_async(dispatch_get_main_queue()) {
-            let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default, handler: nil))
-            reciever.presentViewController(alert, animated: true, completion: nil)
-        }
     }
     
     class func sharedInstance() -> MapViewController {

@@ -11,19 +11,20 @@ import MapKit
 
 extension ParsingClient {
     
-    func login(errorReciever: AnyObject!, jsonBody: String, completionHandler: (success: Bool, errorString: String?) -> Void) {
-        POSTSessionMethod(jsonBody) {JSONResult, error in
+    // MARK: - Logs in
+    func login(errorReceiver: AnyObject!, jsonBody: String, completionHandler: (success: Bool, errorString: String?) -> Void) {
+        POSTSessionMethod(errorReceiver, jsonBody: jsonBody) {JSONResult, error in
             
             self.appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
             
             if let _ = error {
-                completionHandler(success: false, errorString: JSONResult["error"] as? String)
+                completionHandler(success: false, errorString: "No internet Connection.")
             } else {
                 if let sessionID = JSONResult["session"]??["id"] as? String {
-                    self.appDelegate.sessionID = sessionID
+                    StudentData.sharedInstance().sessionID = sessionID
                     if let userID = JSONResult["account"]??["key"] as? String {
-                        self.appDelegate.userKey = Int(userID)
-                        ParsingClient.sharedInstance().getFullName(){(success, fullName, downloadError) in
+                        StudentData.sharedInstance().userKey = Int(userID)
+                        ParsingClient.sharedInstance().getFullName(errorReceiver){(success, fullName, downloadError) in
                             if fullName?.isEmpty == false {
                                 completionHandler(success: true, errorString: nil)
                                 
@@ -47,6 +48,7 @@ extension ParsingClient {
         }
     }
     
+    // MARK: - Logs out
     func logout(sender: AnyObject!, completionHandler: (success: Bool, errorString: String?) -> Void) {
         DELETEMethod(sender) {JSONResult, error in
             if let _ =  error {
@@ -62,10 +64,12 @@ extension ParsingClient {
             
         }
     }
-    func GETStudentLocationData(view: AnyObject?, parameters: [String : AnyObject], completionHandler: (success: Bool, errorString: String?) -> Void) {
+    
+    // MARK: - Gets data for pins on the map
+    func GETStudentLocationData(receiver: AnyObject!, view: AnyObject?, parameters: [String : AnyObject], completionHandler: (success: Bool, errorString: String?) -> Void) {
         self.appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         
-        GETParseMethod(parameters) {JSONResult, error in
+        GETParseMethod(receiver, parameters: parameters) {JSONResult, error in
             if let _ = error {
                 completionHandler(success: false, errorString: JSONResult["error"] as? String)
             }else{
@@ -75,28 +79,26 @@ extension ParsingClient {
                                 
                 var numberKey = 0
                 
-                self.appDelegate.mapAnnotations.removeAll()
+                StudentData.sharedInstance().mapAnnotations.removeAll()
 
                 for _ in results {
-                    
                     let annotation = MKPointAnnotation()
                     annotation.coordinate = CLLocationCoordinate2D(latitude: locations.latitude[numberKey], longitude: locations.longitude[numberKey])
                     annotation.title = "\(locations.firstName[numberKey]) \(locations.lastName[numberKey])"
                     annotation.subtitle = locations.mediaURL[numberKey]
-                    
-                    self.appDelegate.mapAnnotations.append(annotation)
+                    StudentData.sharedInstance().mapAnnotations.append(annotation)
                     if view != nil {
                         dispatch_async(dispatch_get_main_queue()) {
-                            view!.addAnnotations(self.appDelegate.mapAnnotations)
+                            view!.addAnnotations(StudentData.sharedInstance().mapAnnotations)
                         }
                     }
                     numberKey++
                     
                 }
-                if self.appDelegate.userLocation != nil {
-                self.appDelegate.mapStrings.append(self.appDelegate.userLocation)
+                if StudentData.sharedInstance().userLocation != nil {
+                StudentData.sharedInstance().mapStrings.append(StudentData.sharedInstance().userLocation)
                 }
-                if self.appDelegate.mapAnnotations.isEmpty != true {
+                if StudentData.sharedInstance().mapAnnotations.isEmpty != true {
                     completionHandler(success: true, errorString: nil)
                    
                 }else{
@@ -108,8 +110,9 @@ extension ParsingClient {
         }
     }
     
-    func POSTUserLocationData(jsonBody: [String:AnyObject], completionHandler: (success: Bool, errorString: String!) -> Void) {
-        POSTParseMethod(jsonBody) {JSONResult, error in
+    // MARK: - POSTs user's data to the map
+    func POSTUserLocationData(receiver: AnyObject!, jsonBody: [String:AnyObject], completionHandler: (success: Bool, errorString: String!) -> Void) {
+        POSTParseMethod(receiver, httpBody: jsonBody) {JSONResult, error in
             if let _ = error {
                 completionHandler(success: false, errorString: JSONResult["error"] as? String)
             } else {
@@ -120,16 +123,17 @@ extension ParsingClient {
         }
     }
     
-    func getFullName(completionHandler: (success: Bool, fullName: String?, errorString: String?) -> Void) {
+    // MARK: - Gets the fullname of the user 
+    func getFullName(receiver: AnyObject!, completionHandler: (success: Bool, fullName: String?, errorString: String?) -> Void) {
         self.appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        GETSessionMethod(appDelegate.userKey) {JSONResult, error in
+        GETSessionMethod(receiver, parameter: StudentData.sharedInstance().userKey) {JSONResult, error in
             if let _ = error {
                 completionHandler(success: false, fullName: nil, errorString: JSONResult["error"] as? String)
             }else{
                 if let firstName = JSONResult["user"]!!["first_name"] as? String {
-                    self.appDelegate.userFirstName = firstName
+                    StudentData.sharedInstance().userFirstName = firstName
                     if let lastName = JSONResult["user"]!!["last_name"] as? String {
-                        self.appDelegate.userLastName = lastName
+                        StudentData.sharedInstance().userLastName = lastName
                         completionHandler(success: true, fullName: "\(firstName) \(lastName)", errorString: nil)
                     }else{
                         completionHandler(success: false, fullName: nil, errorString: JSONResult["error"] as? String)

@@ -16,6 +16,7 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
     
     var appDelegate: AppDelegate!
     
+    // MARK: - Initialization
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -23,11 +24,16 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
         
         refresh(self)
         
-        ParsingClient.sharedInstance().GETStudentLocationData(nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
+        ParsingClient.sharedInstance().GETStudentLocationData(self, view: nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
                 print("Success: Loaded table cells")
+                
+                if StudentData.sharedInstance().userLocation != nil {
+                StudentData.sharedInstance().mapStrings.insert(StudentData.sharedInstance().userLocation, atIndex: 0)
+                    print("Successfully added user location to mapStrings")
+                }
             }else{
-                self.errorAlert(errorString!, reciever: self)
+                Config.sharedInstance().errorAlert(errorString!, receiver: self)
             }
         }
         
@@ -53,44 +59,52 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
     func placePin(sender: UIBarButtonItem) {
         performSegueWithIdentifier("postingSegue", sender: sender)
     }
-
     
+    // MARK: - Parsing
     func logout(sender: UIBarButtonItem) {
         ParsingClient.sharedInstance().logout(sender) {success, errorString in
             if success {
+                dispatch_async(dispatch_get_main_queue()) {
                 self.dismissViewControllerAnimated(true, completion: nil)
-            }else{
-                self.errorAlert(errorString!, reciever: self)
+                }
+            } else {
+                Config.sharedInstance().errorAlert("Failed to Logout: \(errorString)", receiver: self)
+                print("Failed to Logout")
             }
-            
-            
         }
     }
+
     
     func refresh(sender: AnyObject) {
-        ParsingClient.sharedInstance().GETStudentLocationData(nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
+        ParsingClient.sharedInstance().GETStudentLocationData(self, view: nil, parameters: ["limit": 100, "order": "-updatedAt"]) {success, errorString in
             if success {
                 self.pinTableView?.reloadData()
                 print("refreshing")
             }else{
-              self.errorAlert(errorString!, reciever: self)
+                Config.sharedInstance().errorAlert(errorString!, receiver: self)
             }
         }
     }
-
+    
     // MARK: - TableView Functions
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return appDelegate.mapAnnotations.count
+        return StudentData.sharedInstance().mapAnnotations.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         
+        
+        
         let cell = tableView.dequeueReusableCellWithIdentifier("CustomPinCell") as! CustomPinCell
-        cell.name.text = appDelegate.mapAnnotations[indexPath.row].title
-        cell.mediaURL.text = appDelegate.mapAnnotations[indexPath.row].subtitle
-        cell.location.text = appDelegate.mapStrings[indexPath.row]
+        
+        cell.name.text = StudentData.sharedInstance().mapAnnotations[indexPath.row].title
+        cell.location.text = StudentData.sharedInstance().mapStrings[indexPath.row]
+        
+        print(cell.location.text)
+        
+        cell.mediaURL.text = StudentData.sharedInstance().mapAnnotations[indexPath.row].subtitle
         
         return cell
     }
@@ -98,18 +112,8 @@ class PinListTableViewController: UITableViewController, UIGestureRecognizerDele
     override  func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         
         let app = UIApplication.sharedApplication()
-        app.openURL(NSURL(string: appDelegate.mapAnnotations[indexPath.row].subtitle!)!)
+        app.openURL(NSURL(string: StudentData.sharedInstance().mapAnnotations[indexPath.row].subtitle!)!)
         
     }
     
-    func errorAlert(errorMessage: String, reciever: AnyObject) {
-        dispatch_async(dispatch_get_main_queue()) {
-            let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: UIAlertActionStyle.Default, handler: nil))
-            reciever.presentViewController(alert, animated: true, completion: nil)
-            
-        }
-
-    }
-
 }
